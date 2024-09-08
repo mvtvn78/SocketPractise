@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo chat</title>
+
+    <style>
+        #left,#right {
+            min-height: 300px;
+        }
+        #left{
+            width: 30%; float: left;
+            background: #04f749;
+        }
+        #right{
+            width: 70%;float: right;
+            background: #005bf7;
+        }
+    </style>
+    <script src="jquery.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io("http://localhost:3000");
+        socket.on("Server-send-failed",()=>{
+            alert("User Exist");
+        });
+        socket.on("Server-send-success",(data)=>{
+            $("#currentUser").html(data)
+            $("#loginForm").hide(1000);
+            $("#chatForm").show(2000);
+        });
+        socket.on("Server-send-Users",(data)=>{
+            $("#boxContent").html('');
+            data.forEach(element => {
+                $("#boxContent").append("<div class='userOnline'>"+element+"</div>")
+            });
+        });
+        socket.on("server-send-msg",(data)=>{
+            $("#listenMessages").append("<div class='ms'>"+data.username +" : "+data.msgText+"</div>")
+        })
+        $(document).ready(()=>{
+            $("#loginForm").show();
+            $("#chatForm").hide();
+            $("#btnRegister").click(()=>{
+                socket.emit("client-send-Username",$("#txtUser").val());
+            })
+            $("#btnLogout").click(()=>{
+                socket.emit("client-logout-Username");
+                $("#loginForm").show();
+                $("#chatForm").hide();
+            })
+            $("#btnSendMsg").click(()=>{
+                socket.emit("user-send-msg",$("#txtMessage").val());
+            })
+        })
+    </script>
+</head>
+<body>
+    <div id="loginForm">
+        <h3>Your name:</h3>
+        <input type="text" id="txtUser">
+        <input type="button" value="Register" id="btnRegister">
+    </div>
+    <div id="chatForm">
+        <div id="left">
+            <div id="boxTitle">User Online</div>
+            <div id="boxContent">
+                <div class="userOnline">Teo</div>
+                <div class="userOnline">Teo</div>
+                <div class="userOnline">Teo</div>
+            </div>
+        </div>
+        <div id="right">
+            <div id="sayHi" >Hello <span id="currentUser">Teo</span></div>
+            <input type="button" value="Logout" id="btnLogout">
+            <div id="listenMessages" style="height: 200px; background: #fcead4;"></div>
+            <input type="text" id="txtMessage">
+            <input type="button" value="Send" id="btnSendMsg" >
+        </div>
+    </div>
+</body>
+</html>
